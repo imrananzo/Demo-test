@@ -1,24 +1,48 @@
-name: C++ CI
+name: ROS Noetic CI
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
 
-    - name: Install g++
-      run: sudo apt-get install g++
+    - name: Setup ROS Noetic
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lsb-release gnupg2
+        sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+        sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+        sudo apt-get update
+        sudo apt-get install -y ros-noetic-desktop-full
+        echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+        source ~/.bashrc
+        sudo apt-get install -y python3-rosdep python3-rosinstall python3-rosinstall-generator python3-wstool build-essential
+        sudo rosdep init
+        rosdep update
 
-    - name: Compile C++ code
-      run: g++ -o hello-world main.cpp
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-catkin-tools python3-osrf-pycommon
+        sudo rosdep install --from-paths src --ignore-src --rosdistro noetic -y
 
-    - name: Run the program
-      run: ./hello-world
+    - name: Build Package
+      run: |
+        source /opt/ros/noetic/setup.bash
+        catkin_make
+
+    - name: Run Tests
+      run: |
+        source devel/setup.bash
+        catkin_make run_tests
+        catkin_test_results
