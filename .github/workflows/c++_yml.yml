@@ -1,25 +1,24 @@
-name: Build and Test C++ Code on Push
+name: C++ CI
+
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-test:
+  build:
+
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up C++ toolchain
-      uses: actions/setup-cpp@v2
-      with:
-        cpp-version: '17'
-        compiler: 'g++'
-        packages: 'cmake'
+    - name: Install g++
+      run: sudo apt-get install g++
 
-    - name: Build and test
-      run: |
-        mkdir build && cd build
-        cmake ..
-        make
-        ctest
+    - name: Compile C++ code
+      run: g++ -o hello-world main.cpp
+
+    - name: Run the program
+      run: ./hello-world
