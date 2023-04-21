@@ -1,0 +1,25 @@
+name: Build and Test C++ Code on Push
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up C++ toolchain
+      uses: actions/setup-cpp@v2
+      with:
+        cpp-version: '17'
+        compiler: 'g++'
+        packages: 'cmake'
+
+    - name: Build and test
+      run: |
+        mkdir build && cd build
+        cmake ..
+        make
+        ctest
